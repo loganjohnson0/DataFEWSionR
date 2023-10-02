@@ -1,0 +1,19 @@
+Package: DataFEWSionR
+Title: Visualizes 'FEWS' Data for Iowa
+Version: 0.0.0.9000
+Authors@R: c(
+    person("Logan", "Johnson", , "logan01@iastate.edu", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0001-9773-5027")),
+    person("Angelos", "Lagoudakis", , "angelosl@iastate.edu", role = "aut"),
+    person("Júlia", "Brittes Tuthill", , "jbrittes@iastate.edu", role = "aut"),
+    person("Nicole", "Kling", , "nrkling@iastate.edu", role = "aut")
+  )
+Description: Visualizes a variety of data related to the Food, Energy, and Water Systems (FEWS) nexus for the state of Iowa.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
+Imports:
+    dplyr,
+    tidygeocoder,
+    leaflet
