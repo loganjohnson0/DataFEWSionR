@@ -57,3 +57,11 @@ library(DataFEWSionR)
 
 Now if there are no errors or warnings, you should be ready to go! <b>
 GREAT! </b>
+
+To explore our data, simply run the following code:
+
+``` r
+DataFEWSionR::runExample()
+```
+
+This will launch our application and bring up our interface.

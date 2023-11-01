@@ -2,20 +2,22 @@
 library(shiny)
 library(tidyverse)
 library(leaflet)
+library(tidycensus)
 library(sf)
 
-
-iowa_counties <- sf::read_sf("input_data/iowa_county_boarder/")
+iowa_counties <- sf::read_sf("input_data/iowa_county_boarder/") %>%
+    dplyr::rename(County_name = Cnty_nm)
 census_county <- sf::read_sf("input_data/iowa_county_census_data/")
 census_county_subdivision <- sf::read_sf("input_data/iowa_county_subdivision_census_data/")
-food_access_sf <- sf::read_sf("input_data/food_access_data/")
-food_access <- readr::read_csv(file = "input_data/food_access.csv")
-real_GDP <- readr::read_csv(file = "input_data/Real_GDP_Iowa_Released_December_2022.csv")
-iowa_cafos <- readr::read_csv(file = "input_data/iowa_cafo_data.csv")
-usda_crops <- readr::read_csv(file = "input_data/usda.csv",
-                              col_select = !c(1))
+# real_GDP <- readr::read_csv(file = "input_data/Real_GDP_Iowa_Released_December_2022.csv")
+# iowa_cafos <- readr::read_csv(file = "input_data/iowa_cafo_data.csv")
 
-food_access_sf <- food_access_sf %>%
+
+usda_crops <- sf::read_sf("input_data/usda_crop_data/") %>%
+    dplyr::rename(County_name = Cnty_nm,
+                  Attribute = Attribt)
+
+food_access <- sf::read_sf("input_data/food_access_data/") %>%
     dplyr::rename(Percent_low_access_to_store_households = pct_lc_,
                   Grocery_stores_per_thousand = grocpth,
                   Supercenters_club_stores_per_thousand = sprcpth,
@@ -24,7 +26,11 @@ food_access_sf <- food_access_sf %>%
                   Fast_food_restaurants_per_thousand = ffrpth,
                   Farmers_markets_per_thousand = fmrktpt,
                   Food_insecurity_rate = fd_nsc_,
-                  County_name = cnty_nm)
+                  County_name = cnty_nm)  %>%
+    tidyr::pivot_longer(cols = c(2:9),
+                        names_to = "Attribute",
+                        values_to = "Value")
+
 
 base_map <- leaflet::leaflet() %>%
     leaflet::addProviderTiles(providers$OpenStreetMap)  %>%
@@ -57,8 +63,7 @@ ui <- fluidPage(
 
                      leafletOutput("iowa.census", height = "125%", width = "100%"))),
 
-
-        tabPanel("Crop Productivity",
+        tabPanel("Crop and Livestock Statistics",
 
                  div(class="outer",
 
@@ -68,7 +73,17 @@ ui <- fluidPage(
 
                      absolutePanel(id = "controls", class = "panel panel-default",
                                    fixed = TRUE, draggable = TRUE, top = 150, right = 55,
-                                   width = 300, height = "auto"))),
+                                   width = 300, height = "auto",
+
+                                   selectInput(inputId = "crop.stat", choices = unique(usda_crops$Attribute),
+                                               label = "Choose the Data to Visualize."),
+
+                                   sliderInput(inputId = "crop.year",
+                                               min = min(unique(usda_crops$Year)),
+                                               max = max(unique(usda_crops$Year)),
+                                               label = "Choose the Year to Visualize",
+                                               value = min(unique(usda_crops$Year)))
+                     ))),
         tabPanel("Food Access Statistics",
                  div(class="outer",
 
@@ -147,12 +162,28 @@ server <- function(input, output) {
     })
 
     output$usda.crops <- renderLeaflet({
-        base_map
+        base_map %>%
+            leaflet::addPolygons(data = usda_crops %>%
+                                     dplyr::filter(Attribute %in% input$crop.stat) %>%
+                                     dplyr::filter(Year %in% input$crop.year),
+                                 weight = 1,
+                                 smoothFactor = 0.3,
+                                 color = "black",
+                                 fillOpacity = 0.5,
+                                 fillColor = ~ pal_num(usda_crops %>%
+                                                           dplyr::filter(Attribute %in% input$crop.stat) %>%
+                                                           dplyr::filter(Year %in% input$crop.year) %>%
+                                                           dplyr::pull(Value)),
+                                 label = ~ as.character(usda_crops %>%
+                                                            dplyr::filter(Attribute %in% input$crop.stat) %>%
+                                                            dplyr::filter(Year %in% input$crop.year) %>%
+                                                            dplyr::pull(Value)))
     })
 
     output$food.access <- renderLeaflet({
         base_map %>%
-            leaflet::addPolygons(data = food_access_sf,
+            leaflet::addPolygons(data = food_access%>%
+                                     dplyr::filter(Attribute %in% input$food.stat),
                                  weight = 1,
                                  smoothFactor = 0.3,
                                  color = "black",
