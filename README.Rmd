@@ -3,7 +3,11 @@ output: github_document
 ---
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# Welcome to our GitHub Page!
+# DataFEWSionR
+
+<!-- badges: start -->
+[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+<!-- badges: end -->
 
 ## Who are we?
 We are an interdisciplinary group of graduate students from Iowa State University.
