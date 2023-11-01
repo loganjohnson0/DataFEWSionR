@@ -6,30 +6,30 @@ library(tidycensus)
 library(sf)
 
 iowa_counties <- sf::read_sf("input_data/iowa_county_boarder/") %>%
-    dplyr::rename(County_name = Cnty_nm)
+    dplyr::rename(County_name = Cnty_nm) %>%
+    dplyr::mutate(GEOID = as.numeric(GEOID))
 census_county <- sf::read_sf("input_data/iowa_county_census_data/")
 census_county_subdivision <- sf::read_sf("input_data/iowa_county_subdivision_census_data/")
+
+usda_crops <- readr::read_csv(file = "input_data/usda.csv")
+
+usda_crops <- usda_crops %>%
+    dplyr::full_join(x = usda_crops, y = iowa_counties, by = "County_name") %>%
+    dplyr::select(1:4,9, 16)
+
+usda_crops <- sf::st_as_sf(usda_crops)
+
+food_access <- readr::read_csv(file = "input_data/food_access.csv")
+
+food_access <- food_access %>%
+    dplyr::full_join(x = food_access, y = iowa_counties, by = "GEOID") %>%
+    dplyr::select(1:4, 16)
+
+food_access <- sf::st_as_sf(food_access)
+
 # real_GDP <- readr::read_csv(file = "input_data/Real_GDP_Iowa_Released_December_2022.csv")
 # iowa_cafos <- readr::read_csv(file = "input_data/iowa_cafo_data.csv")
 
-
-usda_crops <- sf::read_sf("input_data/usda_crop_data/") %>%
-    dplyr::rename(County_name = Cnty_nm,
-                  Attribute = Attribt)
-
-food_access <- sf::read_sf("input_data/food_access_data/") %>%
-    dplyr::rename(Percent_low_access_to_store_households = pct_lc_,
-                  Grocery_stores_per_thousand = grocpth,
-                  Supercenters_club_stores_per_thousand = sprcpth,
-                  Convenience_stores_per_thousand = cnvspth,
-                  Specialized_food_stores_per_thousand = spcspth,
-                  Fast_food_restaurants_per_thousand = ffrpth,
-                  Farmers_markets_per_thousand = fmrktpt,
-                  Food_insecurity_rate = fd_nsc_,
-                  County_name = cnty_nm)  %>%
-    tidyr::pivot_longer(cols = c(2:9),
-                        names_to = "Attribute",
-                        values_to = "Value")
 
 
 base_map <- leaflet::leaflet() %>%
