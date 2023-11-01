@@ -1,14 +1,9 @@
 
 library(shiny)
 library(tidyverse)
-library(tidygeocoder)
 library(leaflet)
-library(tidycensus)
 library(sf)
-library(terra)
-library(spData)
-library(spDataLarge)
-library(tmap)
+
 
 iowa_counties <- sf::read_sf("input_data/iowa_county_boarder/")
 census_county <- sf::read_sf("input_data/iowa_county_census_data/")

@@ -20,10 +20,34 @@ Rapids, and Iowa City. The remaining population exists in rural areas
 where a significant amount of the agricultural crops are grown.
 
 As climate change makes weather events more uncertain and the severity
-of droughts and extreme weather events forcasted to increase in the near
+of droughts and extreme weather events forecast to increase in the near
 and long term, we incorporated the most recent climate change models
 with the perception of individuals on climate change. This shows that
 the regions that are most likely to be impacted by climate change are
 those in rural areas.
 
 ## How can you use our Shiny Application?
+
+First, you will need to install R and RStudio. See the links to download
+R and RStudio, respectively.
+
+You will then need a few packages install and loaded into RStudio.
+
+``` r
+library(devtools)
+library(leaflet)
+library(shiny)
+library(sf)
+library(tidyverse)
+```
+
+Now you are ready to download our package, `DataFEWSionR`.
+
+``` r
+devtools::install_github("loganjohnson0/DataFEWSionR")
+
+library(DataFEWSionR)
+```
+
+Now if there are no errors or warnings, you should be ready to go! <b>
+GREAT! </b>
