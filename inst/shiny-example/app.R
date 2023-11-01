@@ -11,6 +11,8 @@ iowa_counties <- sf::read_sf("input_data/iowa_county_boarder/") %>%
 census_county <- sf::read_sf("input_data/iowa_county_census_data/")
 census_county_subdivision <- sf::read_sf("input_data/iowa_county_subdivision_census_data/")
 
+###
+
 usda_crops <- readr::read_csv(file = "input_data/usda.csv")
 
 usda_crops <- usda_crops %>%
@@ -18,6 +20,8 @@ usda_crops <- usda_crops %>%
     dplyr::select(1:4,9, 16)
 
 usda_crops <- sf::st_as_sf(usda_crops)
+
+###
 
 food_access <- readr::read_csv(file = "input_data/food_access.csv")
 
@@ -27,7 +31,22 @@ food_access <- food_access %>%
 
 food_access <- sf::st_as_sf(food_access)
 
-# real_GDP <- readr::read_csv(file = "input_data/Real_GDP_Iowa_Released_December_2022.csv")
+####
+
+climate_opinion <- readr::read_csv(file = "input_data/yale_climate_opinion.csv") %>%
+    dplyr::mutate(Year = as.numeric(Year))
+
+climate_opinion <- climate_opinion %>%
+    dplyr::full_join(x = climate_opinion, y = iowa_counties, by = "GEOID") %>%
+    dplyr::select(1:6, 18)
+
+climate_opinion <- sf::st_as_sf(climate_opinion)
+
+###
+
+real_GDP <- readr::read_csv(file = "input_data/Real_GDP_Iowa_Released_December_2022.csv")
+
+
 # iowa_cafos <- readr::read_csv(file = "input_data/iowa_cafo_data.csv")
 
 
@@ -35,7 +54,7 @@ food_access <- sf::st_as_sf(food_access)
 base_map <- leaflet::leaflet() %>%
     leaflet::addProviderTiles(providers$OpenStreetMap)  %>%
     leaflet::fitBounds(-100,-60,60,70) %>%
-    leaflet::setView(lng = -93.5, lat = 41, zoom = 6.5)
+    leaflet::setView(lng = -93.5, lat = 42, zoom = 6.5)
 
 pal_num <- leaflet::colorNumeric(
     palette = colorRamp(c("lightgray", "blue", "red"), interpolate = "spline"), NULL)
@@ -47,7 +66,7 @@ pal_fct <- leaflet::colorFactor(
 ui <- fluidPage(
 
     # Application title
-    titlePanel("DataFEWSion Project"),
+    titlePanel("DataFEWSion Food Group Project"),
 
     br(),
 
@@ -58,8 +77,6 @@ ui <- fluidPage(
                  div(class="outer",
 
                      tags$head(includeCSS("styles.css")),
-
-                     h3("Welcome to our Shiny Application! Here is an overview on Iowa Population Statistics."),
 
                      leafletOutput("iowa.census", height = "125%", width = "100%"))),
 
@@ -98,13 +115,33 @@ ui <- fluidPage(
                                    selectInput(inputId = "food.stat", choices = unique(food_access$Attribute),
                                                label = "Choose the Data to Visualize.")
 
+                     ))),
+        tabPanel("Climate Opinion",
+                 div(class="outer",
+
+                     tags$head(includeCSS("styles.css")),
+
+                     leafletOutput("climate.opinion", height = "125%", width = "100%"),
+
+                     absolutePanel(id = "controls", class = "panel panel-default",
+                                   fixed = TRUE, draggable = TRUE, top = 150, right = 55,
+                                   width = 300, height = "auto",
+
+                                   selectInput(inputId = "climate",
+                                               choices = unique(climate_opinion$Attribute),
+                                               label = "Choose the Data to Visualize."),
+
+                                   selectInput(inputId = "climate.year",
+                                               label = "Choose the Year to Visualize",
+                                               choices = unique(climate_opinion$Year))
+
                      )))
     ),
     fillPage = TRUE
 )
 
 # Define server logic required to draw a histogram
-server <- function(input, output) {
+server <- function(input, output, session) {
 
     output$iowa.census <- renderLeaflet({
         base_map %>%
@@ -195,6 +232,38 @@ server <- function(input, output) {
                                                             dplyr::filter(Attribute %in% input$food.stat) %>%
                                                             dplyr::pull(Value)))
     })
+
+    observe({
+        climate_filtered <- climate_opinion %>%
+            dplyr::filter(Attribute %in% input$climate)
+
+        climate_year <- unique(climate_filtered$Year)
+
+        updateSelectInput(session,
+                          "climate.year",
+                          choices = climate_year)
+    })
+
+    output$climate.opinion <- renderLeaflet({
+        base_map %>%
+            leaflet::addPolygons(data = climate_opinion %>%
+                                     dplyr::filter(Attribute %in% input$climate) %>%
+                                     dplyr::filter(Year %in% input$climate.year),
+                                 weight = 1,
+                                 smoothFactor = 0.3,
+                                 color = "black",
+                                 fillOpacity = 0.5,
+                                 fillColor = ~ pal_num(climate_opinion %>%
+                                                           dplyr::filter(Attribute %in% input$climate) %>%
+                                                           dplyr::filter(Year %in% input$climate.year) %>%
+                                                           dplyr::pull(Value)),
+                                 label = ~ as.character(climate_opinion %>%
+                                                            dplyr::filter(Attribute %in% input$climate) %>%
+                                                            dplyr::filter(Year %in% input$climate.year) %>%
+                                                            dplyr::pull(Value)))
+    })
+
+
 }
 
 
