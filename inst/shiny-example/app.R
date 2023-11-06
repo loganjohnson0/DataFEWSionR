@@ -56,8 +56,11 @@ base_map <- leaflet::leaflet() %>%
     leaflet::fitBounds(-100,-60,60,70) %>%
     leaflet::setView(lng = -93.5, lat = 42, zoom = 6.5)
 
+# pal_num <- leaflet::colorNumeric(
+#     palette = colorRamp(c("lightgray", "blue", "red"), interpolate = "spline"), NULL)
+
 pal_num <- leaflet::colorNumeric(
-    palette = colorRamp(c("lightgray", "blue", "red"), interpolate = "spline"), NULL)
+    palette = "magma", NULL)
 
 pal_fct <- leaflet::colorFactor(
     palette = "viridis", NULL)
