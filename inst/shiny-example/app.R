@@ -95,11 +95,16 @@ ui <- fluidPage(
                                    selectInput(inputId = "crop.stat", choices = unique(usda_crops$Attribute),
                                                label = "Choose the Data to Visualize."),
 
-                                   sliderInput(inputId = "crop.year",
-                                               min = min(unique(usda_crops$Year)),
-                                               max = max(unique(usda_crops$Year)),
-                                               label = "Choose the Year to Visualize",
-                                               value = min(unique(usda_crops$Year)))
+                                   selectInput(inputId = "crop.year", choices = unique(usda_crops$Year),
+                                               label = "Choose the Data to Visualize.")
+
+
+
+                                   # sliderInput(inputId = "crop.year",
+                                   #             min = min(unique(usda_crops$Year)),
+                                   #             max = max(unique(usda_crops$Year)),
+                                   #             label = "Choose the Year to Visualize",
+                                   #             value = min(unique(usda_crops$Year)))
                      ))),
         tabPanel("Food Access Statistics",
                  div(class="outer",
